@@ -1,6 +1,9 @@
 #ifndef SPONGE_LIBSPONGE_BYTE_STREAM_HH
 #define SPONGE_LIBSPONGE_BYTE_STREAM_HH
 
+#include "buffer.hh"
+
+#include <deque>
 #include <string>
 
 //! \brief An in-order byte stream.
@@ -11,17 +14,21 @@
 class ByteStream {
   private:
     // Your code here -- add private members as necessary.
-
     // Hint: This doesn't need to be a sophisticated data structure at
     // all, but if any of your tests are taking longer than a second,
     // that's a sign that you probably want to keep exploring
     // different approaches.
+    BufferList _buffer = {};
+    size_t _capacity = 0;
+    size_t _write_count = 0;
+    size_t _read_count = 0;
+    bool _is_input_ended = false;
 
-    bool _error{};  //!< Flag indicating that the stream suffered an error.
+    bool _error = false;  //!< Flag indicating that the stream suffered an error.
 
   public:
     //! Construct a stream with room for `capacity` bytes.
-    ByteStream(const size_t capacity);
+    explicit ByteStream(size_t capacity);
 
     //! \name "Input" interface for the writer
     //!@{
@@ -46,14 +53,14 @@ class ByteStream {
 
     //! Peek at next "len" bytes of the stream
     //! \returns a string
-    std::string peek_output(const size_t len) const;
+    std::string peek_output(size_t len) const;
 
     //! Remove bytes from the buffer
-    void pop_output(const size_t len);
+    void pop_output(size_t len);
 
     //! Read (i.e., copy and then pop) the next "len" bytes of the stream
     //! \returns a string
-    std::string read(const size_t len);
+    std::string read(size_t len);
 
     //! \returns `true` if the stream input has ended
     bool input_ended() const;
