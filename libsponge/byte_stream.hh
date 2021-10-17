@@ -18,11 +18,11 @@ class ByteStream {
     // all, but if any of your tests are taking longer than a second,
     // that's a sign that you probably want to keep exploring
     // different approaches.
-    BufferList _buffer = {};
-    size_t _capacity = 0;
-    size_t _write_count = 0;
-    size_t _read_count = 0;
-    bool _is_input_ended = false;
+    std::deque<char> _buffer;
+    size_t _capacity;
+    size_t _write_count;
+    size_t _read_count;
+    bool _is_input_ended;
 
     bool _error = false;  //!< Flag indicating that the stream suffered an error.
 

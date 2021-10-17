@@ -19,7 +19,7 @@ class StreamReassembler {
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
     //! \note This capacity limits both the bytes that have been reassembled,
     //! and those that have not yet been reassembled.
-    StreamReassembler(const size_t capacity);
+    explicit StreamReassembler(size_t capacity);
 
     //! \brief Receive a substring and write any newly contiguous bytes into the stream.
     //!
@@ -29,7 +29,7 @@ class StreamReassembler {
     //! \param data the substring
     //! \param index indicates the index (place in sequence) of the first byte in `data`
     //! \param eof the last byte of `data` will be the last byte in the entire stream
-    void push_substring(const std::string &data, const uint64_t index, const bool eof);
+    void push_substring(const std::string &data, uint64_t index, bool eof);
 
     //! \name Access the reassembled byte stream
     //!@{

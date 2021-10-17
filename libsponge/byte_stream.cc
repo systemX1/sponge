@@ -1,8 +1,5 @@
 #include "byte_stream.hh"
 
-#include <algorithm>
-#include <iterator>
-#include <sstream>
 #include <stdexcept>
 
 // Dummy implementation of a flow-controlled in-memory byte stream.
@@ -17,36 +14,36 @@ void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
-ByteStream::ByteStream(const size_t capacity) : _capacity(capacity) {}
+ByteStream::ByteStream(const size_t capacity) :
+    _buffer(),
+    _capacity(capacity),
+    _write_count(0),
+    _read_count(0),
+    _is_input_ended(false) {}
 
 size_t ByteStream::write(const string &data) {
-    size_t len = data.length();
-    if (len > _capacity - _buffer.size()) {
-        len = _capacity - _buffer.size();
-    }
+    if(data.empty())
+        return 0;
+    size_t len = ( data.length() > (_capacity - _buffer.size()) ) ? (_capacity - _buffer.size()) : data.length();
     _write_count += len;
-    _buffer.append(BufferList(data.substr(0, len) ));
+    for (size_t i = 0; i < len; i++)
+        _buffer.emplace_back(data[i]);
     return len;
 }
 
 //! \param[in] len bytes will be copied from the output side of the buffer
 string ByteStream::peek_output(size_t len) const {
-    size_t length = len;
-    if (length > _buffer.size()) {
-        length = _buffer.size();
-    }
-    string s = _buffer.concatenate();
-    return string().assign(s.begin(), s.begin() + static_cast<long>(length) );
+    size_t length = len > _buffer.size() ? _buffer.size() : len;
+    return string().assign(_buffer.begin(), _buffer.begin() + static_cast<long>(length) );
 }
 
 //! \param[in] len bytes will be removed from the output side of the buffer
-void ByteStream::pop_output(const size_t len) {
-    size_t length = len;
-    if (length > _buffer.size()) {
-        length = _buffer.size();
-    }
+void ByteStream::pop_output(size_t len) {
+    size_t length = len > _buffer.size() ? _buffer.size() : len;
     _read_count += length;
-    _buffer.remove_prefix(length);
+    while (length--) {
+        _buffer.pop_front();
+    }
 }
 
 std::string ByteStream::read(size_t len) {
@@ -61,7 +58,7 @@ bool ByteStream::input_ended() const { return _is_input_ended; }
 
 size_t ByteStream::buffer_size() const { return _buffer.size(); }
 
-bool ByteStream::buffer_empty() const { return _buffer.size() == 0; }
+bool ByteStream::buffer_empty() const { return _buffer.empty(); }
 
 bool ByteStream::eof() const { return buffer_empty() && input_ended(); }
 
