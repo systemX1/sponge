@@ -5,15 +5,26 @@
 
 #include <cstdint>
 #include <string>
+#include <deque>
+#include <map>
 
 //! \brief A class that assembles a series of excerpts from a byte stream (possibly out of order,
 //! possibly overlapping) into an in-order byte stream.
 class StreamReassembler {
   private:
     // Your code here -- add private members as necessary.
-
+    struct segment {
+        segment() = delete;
+        explicit segment(const std::string &d) : data(d) {}
+        size_t len() const {return data.length();}
+        std::string data;
+    };
+    std::map<size_t, segment> _bufferMap;
     ByteStream _output;  //!< The reassembled in-order byte stream
     size_t _capacity;    //!< The maximum number of bytes
+    size_t _firstUnassembledIndex;  //!< The next unread index
+    size_t _unassembledByte;   //!< The number of unassembled bytes
+    bool _is_eof;       //!< eof
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.
@@ -41,11 +52,17 @@ class StreamReassembler {
     //!
     //! \note If the byte at a particular index has been pushed more than once, it
     //! should only be counted once for the purpose of this function.
-    size_t unassembled_bytes() const;
+    size_t unassembled_bytes() const { return _unassembledByte;}
 
     //! \brief Is the internal state empty (other than the output stream)?
     //! \returns `true` if no substrings are waiting to be assembled
-    bool empty() const;
+    bool empty() const { return !_unassembledByte; }
+
+    //
+    bool isOverlap(size_t begin, size_t len, size_t begin2);
+
+    //
+    size_t appendSegment(size_t dstIdx, segment &dstSeg, size_t srcIdx, const std::string &src);
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH

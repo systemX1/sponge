@@ -9,23 +9,20 @@
 
 // You will need to add private members to the class declaration in `byte_stream.hh`
 
-template <typename... Targs>
-void DUMMY_CODE(Targs &&... /* unused */) {}
+// template <typename... Targs>
+// void DUMMY_CODE(Targs &&... /* unused */) {}
 
 using namespace std;
 
 ByteStream::ByteStream(const size_t capacity) :
-    _buffer(),
-    _capacity(capacity),
-    _write_count(0),
-    _read_count(0),
-    _is_input_ended(false) {}
+    _buffer(), _capacity(capacity),
+    _writeCount(0), _readCount(0), _isInputEnded(false) {}
 
 size_t ByteStream::write(const string &data) {
     if(data.empty())
         return 0;
     size_t len = ( data.length() > (_capacity - _buffer.size()) ) ? (_capacity - _buffer.size()) : data.length();
-    _write_count += len;
+    _writeCount += len;
     for (size_t i = 0; i < len; i++)
         _buffer.emplace_back(data[i]);
     return len;
@@ -40,7 +37,7 @@ string ByteStream::peek_output(size_t len) const {
 //! \param[in] len bytes will be removed from the output side of the buffer
 void ByteStream::pop_output(size_t len) {
     size_t length = len > _buffer.size() ? _buffer.size() : len;
-    _read_count += length;
+    _readCount += length;
     while (length--) {
         _buffer.pop_front();
     }
@@ -52,9 +49,9 @@ std::string ByteStream::read(size_t len) {
     return ret;
 }
 
-void ByteStream::end_input() { _is_input_ended = true; }
+void ByteStream::end_input() { _isInputEnded = true; }
 
-bool ByteStream::input_ended() const { return _is_input_ended; }
+bool ByteStream::input_ended() const { return _isInputEnded; }
 
 size_t ByteStream::buffer_size() const { return _buffer.size(); }
 
@@ -62,8 +59,8 @@ bool ByteStream::buffer_empty() const { return _buffer.empty(); }
 
 bool ByteStream::eof() const { return buffer_empty() && input_ended(); }
 
-size_t ByteStream::bytes_written() const { return _write_count; }
+size_t ByteStream::bytes_written() const { return _writeCount; }
 
-size_t ByteStream::bytes_read() const { return _read_count; }
+size_t ByteStream::bytes_read() const { return _readCount; }
 
 size_t ByteStream::remaining_capacity() const { return _capacity - _buffer.size(); }
