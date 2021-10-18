@@ -17,6 +17,7 @@ class StreamReassembler {
         segment() = delete;
         explicit segment(const std::string &d) : data(d) {}
         size_t len() const {return data.length();}
+        bool empty() const {return !data.length();}
         std::string data;
     };
     std::map<size_t, segment> _bufferMap;
@@ -62,7 +63,7 @@ class StreamReassembler {
     bool isOverlap(size_t begin, size_t len, size_t begin2);
 
     //
-    size_t appendSegment(size_t dstIdx, segment &dstSeg, size_t srcIdx, const std::string &src);
+    size_t appendSegment(size_t dstIdx, std::string &dst, size_t srcIdx, const std::string &src);
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH
