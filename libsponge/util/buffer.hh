@@ -68,7 +68,7 @@ class BufferList {
     BufferList(Buffer buffer) : _buffers{buffer} {}
 
     //! \brief Construct by taking ownership of a std::string
-    explicit BufferList(std::string &&str) noexcept {
+    BufferList(std::string &&str) noexcept {
         Buffer buf{std::move(str)};
         append(buf);
     }
@@ -82,7 +82,7 @@ class BufferList {
 
     //! \brief Transform to a Buffer
     //! \note Throws an exception unless BufferList is contiguous
-    explicit operator Buffer() const;
+    operator Buffer() const;
 
     //! \brief Discard the first `n` bytes of the string (does not require a copy or move)
     void remove_prefix(size_t n);
