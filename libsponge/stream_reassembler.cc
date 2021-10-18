@@ -83,7 +83,7 @@ size_t StreamReassembler::appendSegment(size_t dstIdx, std::string &dst, size_t 
     size_t offset = srcIdx + src.length() - 1;
     if(dst.empty() || src.empty() || isOverlap(dstIdx, dst.length(), offset) )
         return src.length();
-    size_t overlap = srcIdx + src.length() - dstIdx - dst.length();
+    size_t overlap = dstIdx + dst.length() - srcIdx;
     offset = dstIdx + dst.length() - srcIdx;
     dst += src.substr(offset, -1);
     return overlap;
