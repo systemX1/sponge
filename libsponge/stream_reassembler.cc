@@ -80,10 +80,11 @@ bool StreamReassembler::isOverlap(size_t begin, size_t len, size_t begin2) {
 // 5 6 7 8 9 10
 //   6 7
 size_t StreamReassembler::appendSegment(size_t dstIdx, std::string &dst, size_t srcIdx, const std::string &src) {
-    size_t offset = srcIdx + src.length();
+    size_t offset = srcIdx + src.length() - 1;
     if(dst.empty() || src.empty() || isOverlap(dstIdx, dst.length(), offset) )
-        return 0;
+        return src.length();
+    size_t overlap = srcIdx + src.length() - dstIdx - dst.length();
     offset = dstIdx + dst.length() - srcIdx;
     dst += src.substr(offset, -1);
-    return srcIdx + src.length() - dstIdx - dst.length();
+    return overlap;
 }
