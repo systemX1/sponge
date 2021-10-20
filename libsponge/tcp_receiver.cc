@@ -32,7 +32,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
 
     _reassembler.push_substring(seg.payload().copy(), _absSeq - 1, seg.header().fin);
 
-    _netRecvIndex = _reassembler.firstUnassembledIndex() + _isSYN;
+    _netRecvIndex = _reassembler.firstUnassembledIndex() + _isSYN;  // _reassembler won't take the first SYN into consideration
     if(_isFIN && seg.header().fin)  // already syn, reject the others
         return;
     _isFIN |= seg.header().fin;     // save syn state
