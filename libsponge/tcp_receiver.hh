@@ -16,16 +16,27 @@
 class TCPReceiver {
     //! Our data structure for re-assembling bytes.
     StreamReassembler _reassembler;
-
     //! The maximum number of bytes we'll store.
     size_t _capacity;
+    //! The current Initial Sequence Number(ISN), default 0
+    WrappingInt32 _isn;
+    //! The length of payload, excluding SYN and FIN
+    size_t _length;
+    //! The beginning of the window
+    size_t _netRecvIndex;
+    //! The absolute seqno
+    uint64_t _absSeq;
+    //! Hasn't syn received yet
+    bool _isSYN;
+    //! Hasn't fin received yet
+    bool _isFIN;
 
   public:
     //! \brief Construct a TCP receiver
     //!
     //! \param capacity the maximum number of bytes that the receiver will
     //!                 store in its buffers at any give time.
-    TCPReceiver(const size_t capacity) : _reassembler(capacity), _capacity(capacity) {}
+    TCPReceiver(size_t capacity);
 
     //! \name Accessors to provide feedback to the remote TCPSender
     //!@{

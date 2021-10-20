@@ -67,6 +67,7 @@ void StreamReassembler::push_substring(const string &data, size_t index, bool eo
         _bufferMap.erase(_bufferMap.begin());
     }
 
+    // let output steam stop
     if (empty() && _is_eof)
         _output.end_input();
 }

@@ -21,7 +21,7 @@ void get_URL(const string &host, const string &path) {
     tcpSocket.connect(Address(host, "http") );
     tcpSocket.write("GET "+path+" HTTP/1.1\r\nHost: "+host+"\r\n\r\n");
     tcpSocket.shutdown(SHUT_WR);
-    while(!tcpSocket.eof()){
+    while (!tcpSocket.eof() ) {
         cout << tcpSocket.read();
     }
     tcpSocket.close();

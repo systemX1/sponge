@@ -59,11 +59,14 @@ class StreamReassembler {
     //! \returns `true` if no substrings are waiting to be assembled
     bool empty() const { return !_unassembledByte; }
 
+    size_t firstUnassembledIndex() const { return _firstUnassembledIndex;}
+
     //
     bool isOverlap(size_t begin, size_t len, size_t begin2);
 
     //
     size_t appendSegment(size_t dstIdx, std::string &dst, size_t srcIdx, const std::string &src);
+
 };
 
 #endif  // SPONGE_LIBSPONGE_STREAM_REASSEMBLER_HH
