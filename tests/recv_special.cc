@@ -38,7 +38,7 @@ int main() {
             test.execute(ExpectState{TCPReceiverStateSummary::LISTEN});
             test.execute(SegmentArrives{}
                              .with_syn()
-                             .with_seqno(isn)
+                             .with_seqno(isn)//.with_fin()
                              .with_data("Hello, CS144!")
                              .with_result(SegmentArrives::Result::OK));
             test.execute(ExpectState{TCPReceiverStateSummary::SYN_RECV});

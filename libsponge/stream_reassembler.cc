@@ -45,8 +45,8 @@ void StreamReassembler::push_substring(const string &data, size_t index, bool eo
 
     // append the new data
     auto lastSeg = (_bufferMap.empty() || _bufferMap.size() == 1 || _bufferMap.upper_bound(index) == _bufferMap.begin())
-                       ? _bufferMap.begin()
-                       : prev(_bufferMap.upper_bound(index));   // find the greatest key not greater than val
+                        ? _bufferMap.begin()
+                        : prev(_bufferMap.upper_bound(index));   // find the greatest key not greater than val
     if(!_bufferMap.empty() && isOverlap(lastSeg->first, lastSeg->second.len(), index) ) {
         size_t overlap = appendSegment(lastSeg->first, lastSeg->second.data, index, seg.data);
         _unassembledByte += (seg.len() - overlap);

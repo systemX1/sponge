@@ -27,15 +27,14 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
         _netRecvIndex++;
     }
     _absSeq = unwrap(seg.header().seqno, _isn, _absSeq);
-    _length = seg.length_in_sequence_space();
-
+    // _length = seg.length_in_sequence_space();
 
     _reassembler.push_substring(seg.payload().copy(), _absSeq - 1, seg.header().fin);
 
-    _netRecvIndex = _reassembler.firstUnassembledIndex() + _isSYN;  // _reassembler won't take the first SYN into consideration
-    if(_isFIN && seg.header().fin)  // already syn, reject the others
+    _netRecvIndex = _reassembler.firstUnassembledIndex() + _isSYN;  // _reassembler itself won't take the first SYN into consideration
+    if(_isFIN && seg.header().fin)  // already fin, reject the others
         return;
-    _isFIN |= seg.header().fin;     // save syn state
+    _isFIN |= seg.header().fin;     // save fin state
     if(seg.header().fin)
         _netRecvIndex++;
 }
