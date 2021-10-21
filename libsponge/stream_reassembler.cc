@@ -24,16 +24,13 @@ StreamReassembler::StreamReassembler(const size_t capacity) :
 void StreamReassembler::push_substring(const string &data, size_t index, bool eof) {
     _is_eof |= eof;
     // pre process the data
-    if (index >= _firstUnassembledIndex + _capacity) {  // over capacity, discard it
-        if(index == UINT64_MAX && _is_eof)              // SYN underflow and eof
-            _output.end_input();
+    if (index >= _firstUnassembledIndex + _capacity)  // over capacity, discard it
         return;
-    }
     segment seg(data);
     if(index + seg.len() > _firstUnassembledIndex + _capacity ) { // partially over capacity, truncate it
         _is_eof = false;
         seg.data.assign(seg.data.begin(), seg.data.begin() + static_cast<long>(_firstUnassembledIndex + _capacity - index));
-    } else if(data.empty() || index + data.length() <= _firstUnassembledIndex) {       // TODO Why 2nd condition would be satisfied?
+    } else if(data.empty() || index + data.length() <= _firstUnassembledIndex) {       // no data or
         if(_is_eof)
             _output.end_input();
         return;
