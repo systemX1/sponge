@@ -25,7 +25,7 @@ class StreamReassembler {
     size_t _capacity;    //!< The maximum number of bytes
     size_t _firstUnassembledIndex;  //!< The next unread index
     size_t _unassembledByte;   //!< The number of unassembled bytes
-    bool _is_eof;       //!< eof
+    bool _isEOF;       //!< eof
 
   public:
     //! \brief Construct a `StreamReassembler` that will store up to `capacity` bytes.

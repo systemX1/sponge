@@ -14,24 +14,23 @@ using namespace std;
 
 StreamReassembler::StreamReassembler(const size_t capacity) :
     _bufferMap(), _output(capacity), _capacity(capacity),
-    _firstUnassembledIndex(0), _unassembledByte(0),
-    _is_eof(false) {}
+    _firstUnassembledIndex(0), _unassembledByte(0), _isEOF(false) {}
 
 //! \details This function accepts a substring (aka a segment) of bytes,
 //! possibly out-of-order, from the logical stream, and assembles any newly
 //! contiguous substrings and writes them into the output stream in order.
 //! implementation: if
 void StreamReassembler::push_substring(const string &data, size_t index, bool eof) {
-    _is_eof |= eof;
+    _isEOF |= eof;
     // pre process the data
     if (index >= _firstUnassembledIndex + _capacity)  // over capacity, discard it
         return;
     segment seg(data);
     if(index + seg.len() > _firstUnassembledIndex + _capacity ) { // partially over capacity, truncate it
-        _is_eof = false;
+        _isEOF = false;
         seg.data.assign(seg.data.begin(), seg.data.begin() + static_cast<long>(_firstUnassembledIndex + _capacity - index));
     } else if(data.empty() || index + data.length() <= _firstUnassembledIndex) {       // no data or
-        if(_is_eof)
+        if(_isEOF)
             _output.end_input();
         return;
     }
@@ -70,7 +69,7 @@ void StreamReassembler::push_substring(const string &data, size_t index, bool eo
     }
 
     // let output steam stop
-    if (empty() && _is_eof)
+    if (empty() && _isEOF)
         _output.end_input();
 }
 

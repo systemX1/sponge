@@ -20,8 +20,6 @@ class TCPReceiver {
     size_t _capacity;
     //! The current Initial Sequence Number(ISN), default 0
     WrappingInt32 _isn;
-    //! The length of payload, excluding SYN and FIN
-    size_t _length;
     //! The beginning of the window
     size_t _netRecvIndex;
     //! The absolute seqno

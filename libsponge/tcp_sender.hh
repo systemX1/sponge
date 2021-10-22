@@ -17,26 +17,37 @@
 //! segments if the retransmission timer expires.
 class TCPSender {
   private:
+    //!
+    struct Timer {
+        uint32_t _initRTO;
+        uint32_t _RTO;
+        bool isActive;
+    };
+
     //! our initial sequence number, the number for our SYN.
     WrappingInt32 _isn;
-
     //! outbound queue of segments that the TCPSender wants sent
-    std::queue<TCPSegment> _segments_out{};
-
+    std::queue<TCPSegment> _segments_out;
+    //!
+    std::queue<TCPSegment> _outstandingSegs;
     //! retransmission timer for the connection
-    unsigned int _initial_retransmission_timeout;
-
+    uint32_t _initialRetransmissionTimeout;
     //! outgoing stream of bytes that have not yet been sent
     ByteStream _stream;
-
     //! the (absolute) sequence number for the next byte to be sent
-    uint64_t _next_seqno{0};
+    uint64_t _nextSeqno;
+    //!
+    size_t _windowSize;
+    //!
+    bool _isSYN;
+    //!
+    bool _isFIN;
 
   public:
     //! Initialize a TCPSender
-    TCPSender(const size_t capacity = TCPConfig::DEFAULT_CAPACITY,
-              const uint16_t retx_timeout = TCPConfig::TIMEOUT_DFLT,
-              const std::optional<WrappingInt32> fixed_isn = {});
+    TCPSender(size_t capacity = TCPConfig::DEFAULT_CAPACITY,
+              uint16_t retx_timeout = TCPConfig::TIMEOUT_DFLT,
+              std::optional<WrappingInt32> fixed_isn = {});
 
     //! \name "Input" interface for the writer
     //!@{
@@ -48,7 +59,7 @@ class TCPSender {
     //!@{
 
     //! \brief A new acknowledgment was received
-    void ack_received(const WrappingInt32 ackno, const uint16_t window_size);
+    void ack_received(WrappingInt32 ackno, uint16_t window_size);
 
     //! \brief Generate an empty-payload segment (useful for creating empty ACK segments)
     void send_empty_segment();
@@ -57,7 +68,7 @@ class TCPSender {
     void fill_window();
 
     //! \brief Notifies the TCPSender of the passage of time
-    void tick(const size_t ms_since_last_tick);
+    void tick(size_t ms_since_last_tick);
     //!@}
 
     //! \name Accessors
@@ -82,10 +93,10 @@ class TCPSender {
     //!@{
 
     //! \brief absolute seqno for the next byte to be sent
-    uint64_t next_seqno_absolute() const { return _next_seqno; }
+    uint64_t next_seqno_absolute() const { return _nextSeqno; }
 
     //! \brief relative seqno for the next byte to be sent
-    WrappingInt32 next_seqno() const { return wrap(_next_seqno, _isn); }
+    WrappingInt32 next_seqno() const { return wrap(_nextSeqno, _isn); }
     //!@}
 };
 
