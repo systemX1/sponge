@@ -12,9 +12,9 @@
 
 using namespace std;
 
-StreamReassembler::StreamReassembler(const size_t capacity) :
-    _bufferMap(), _output(capacity), _capacity(capacity),
-    _firstUnassembledIndex(0), _unassembledByte(0), _isEOF(false) {}
+StreamReassembler::StreamReassembler(const size_t capacity)
+    : _bufferMap(), _output(capacity), _capacity(capacity)
+    , _firstUnassembledIndex(0), _unassembledByte(0), _isEOF(false) {}
 
 //! \details This function accepts a substring (aka a segment) of bytes,
 //! possibly out-of-order, from the logical stream, and assembles any newly

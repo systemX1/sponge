@@ -10,10 +10,10 @@
 
 using namespace std;
 
-TCPReceiver::TCPReceiver(size_t capacity):
-        _reassembler(capacity), _capacity(capacity),
-        _isn(0), _netRecvIndex(0), _absSeq(0),
-        _isSYN(false), _isFIN(false) {}
+TCPReceiver::TCPReceiver(size_t capacity)
+        : _reassembler(capacity), _capacity(capacity)
+        , _isn(0), _netRecvIndex(0), _absSeq(0)
+        , _isSYN(false), _isFIN(false) {}
 
 void TCPReceiver::segment_received(const TCPSegment &seg) {
     // handle the syn flag

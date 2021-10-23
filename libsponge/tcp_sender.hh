@@ -17,30 +17,60 @@
 //! segments if the retransmission timer expires.
 class TCPSender {
   private:
-    //!
+    //! retransmission timer for the connection
     struct Timer {
+        //! initiative retransmission timeout
         uint32_t _initRTO;
+        //! retransmission timeout
         uint32_t _RTO;
-        bool isActive;
+        //! timeout
+        uint32_t _TO;
+        //! whether timer is running or not
+        bool _isActive;
+
+        explicit Timer(uint32_t initRTO) : _initRTO(initRTO), _RTO(0), _TO(0), _isActive(false) {}
+        bool isActive() const { return _isActive;}
+        void start() {
+            _isActive = true;
+            _TO = 0;
+        }
+        void stop() {
+            _isActive = false;
+            _TO = 0;
+        }
+        void trick(size_t ms_since_last_tick) {
+            if(!_isActive)
+                return;
+            _TO += ms_since_last_tick;
+        }
+        bool isRetransmissionTimeout() {
+            return _initRTO + _RTO;
+        }
     };
 
+    //! retransmission timer for the connection
+    Timer _timer;
     //! our initial sequence number, the number for our SYN.
     WrappingInt32 _isn;
     //! outbound queue of segments that the TCPSender wants sent
     std::queue<TCPSegment> _segments_out;
-    //!
-    std::queue<TCPSegment> _outstandingSegs;
-    //! retransmission timer for the connection
-    uint32_t _initialRetransmissionTimeout;
+    //! outstanding queue of segments that the have been sent but no ack
+    std::queue<TCPSegment> _outstandingSegment;
     //! outgoing stream of bytes that have not yet been sent
     ByteStream _stream;
     //! the (absolute) sequence number for the next byte to be sent
     uint64_t _nextSeqno;
-    //!
+    //! last received ackno
+    uint64_t _lastAckno;
+    //! the window's size
     size_t _windowSize;
-    //!
+    //! the number of bytes in flight, including syn and fin flag
+    size_t _bytesinFlight;
+    //! the number of consecutive retransmissions
+    size_t _consecutiveRetransmission;
+    //! hasn't syn sent yet
     bool _isSYN;
-    //!
+    //! hasn't syn sent yet
     bool _isFIN;
 
   public:
@@ -98,6 +128,9 @@ class TCPSender {
     //! \brief relative seqno for the next byte to be sent
     WrappingInt32 next_seqno() const { return wrap(_nextSeqno, _isn); }
     //!@}
+
+    //!
+    void sendSegment(TCPSegment &seg);
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_SENDER_HH
