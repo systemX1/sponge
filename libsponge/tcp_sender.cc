@@ -93,19 +93,16 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
 void TCPSender::tick(const size_t ms_since_last_tick) {
     _timer.trick(ms_since_last_tick);
     if(_timer.isRetransmissionTimeout() && !_outstandingSegment.empty()) {
-        segments_out().push(_outstandingSegment.front());
-        if(!_windowSize) {
-            _consecutiveRetransmission++;
-            _timer._RTO = _timer._RTO << 1;
+        TCPSegment tmpSegment = _outstandingSegment.front();    // TODO merge 2 row
+        segments_out().push(tmpSegment);
+        if(_windowSize) {  // If the window size is nonzero
+            _consecutiveRetransmission++;   // Keep track of the number of consecutive retransmissions, and increment it because you just retransmitted something
+            _timer._RTO <<= 1;  // Double the value of RTO
         }
         _timer.start();
-        if(_outstandingSegment.empty())
-            _timer.stop();
     }
-
-    fill_window();
-    if(!_outstandingSegment.empty())
-        _timer.start();
+    if(_outstandingSegment.empty())
+        _timer.stop();
 }
 
 unsigned int TCPSender::consecutive_retransmissions() const {

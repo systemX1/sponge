@@ -28,7 +28,7 @@ class TCPSender {
         //! whether timer is running or not
         bool _isActive;
 
-        explicit Timer(uint32_t initRTO) : _initRTO(initRTO), _RTO(0), _TO(0), _isActive(false) {}
+        explicit Timer(uint32_t initRTO) : _initRTO(initRTO), _RTO(initRTO), _TO(0), _isActive(false) {}
         bool isActive() const { return _isActive;}
         void start() {
             _isActive = true;
@@ -46,7 +46,7 @@ class TCPSender {
         bool isRetransmissionTimeout() {
             if(!_isActive)
                 return false;
-            if(_TO > _RTO)
+            if(_TO >= _RTO)
                 return true;
             return false;
         }
