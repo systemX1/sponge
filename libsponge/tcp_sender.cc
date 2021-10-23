@@ -42,7 +42,7 @@ void TCPSender::fill_window() {
 
     size_t windowSize = !_windowSize ? 1 : _windowSize;
     size_t validWindowSize = 0;
-    while (!_isFIN && windowSize > (validWindowSize = (_nextSeqno - _lastAckno) ) ) {
+    while (!_isFIN && (validWindowSize = windowSize - (_nextSeqno - _lastAckno) ) ) {
         size_t readLen = min(TCPConfig::MAX_PAYLOAD_SIZE, validWindowSize );
         string payloadStr = _stream.read(readLen);
         seg.payload() = Buffer(move(payloadStr));
