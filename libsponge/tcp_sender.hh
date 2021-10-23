@@ -44,7 +44,11 @@ class TCPSender {
             _TO += ms_since_last_tick;
         }
         bool isRetransmissionTimeout() {
-            return _initRTO + _RTO;
+            if(!_isActive)
+                return false;
+            if(_TO > _RTO)
+                return true;
+            return false;
         }
     };
 

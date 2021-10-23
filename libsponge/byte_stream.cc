@@ -38,9 +38,8 @@ string ByteStream::peek_output(size_t len) const {
 void ByteStream::pop_output(size_t len) {
     size_t length = len > _buffer.size() ? _buffer.size() : len;
     _readCount += length;
-    while (length--) {
+    while (length--)
         _buffer.pop_front();
-    }
 }
 
 std::string ByteStream::read(size_t len) {

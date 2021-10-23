@@ -71,10 +71,21 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
     _timer._RTO = _timer._initRTO;
 
     while (!_outstandingSegment.empty() &&
-           unwrap(_outstandingSegment.front().header().seqno, _isn, _nextSeqno) +  _outstandingSegment.front().length_in_sequence_space() <= absAckno) {
+           unwrap(_outstandingSegment.front().header().seqno, _isn, _nextSeqno)
+           + _outstandingSegment.front().length_in_sequence_space() <= absAckno) {
         _bytesinFlight -= _outstandingSegment.front().length_in_sequence_space();
         _outstandingSegment.pop();
     }
+
+    // The TCPSender should fill the window again if new space has opened up
+    fill_window();
+    // Set the RTO back to its “initial value.”
+    _timer._RTO = _timer._initRTO;
+    // If the sender has any outstanding data, restart the retransmission timer
+    if(!_outstandingSegment.empty())
+        _timer.start();
+    // Reset the count of “consecutive retransmissions” back to zero
+    _consecutiveRetransmission = 0;
 }
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
