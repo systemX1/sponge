@@ -55,7 +55,7 @@ void TCPSender::fill_window() {
         // read
         size_t readLen = min(TCPConfig::MAX_PAYLOAD_SIZE, validWindowSize );
         string payloadStr = _stream.read(readLen);
-        seg.payload() = Buffer(move(payloadStr));       // TODO merge 2 row
+        seg.payload() = Buffer(move(payloadStr));
 
         if(_stream.eof() && validWindowSize > seg.length_in_sequence_space() ) {
             seg.header().fin = true;
@@ -76,10 +76,14 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
     // not in expection
     if(absAckno < _lastAckno || absAckno > _nextSeqno)
         return;
-    // acknowledge
-    _consecutiveRetransmission = 0;
     _windowSize = window_size;
-    _timer._RTO = _timer._initRTO;
+    // acknowledge
+    if(absAckno == _lastAckno) {     // no new data
+        fill_window();
+        return;
+    }
+    _consecutiveRetransmission = 0;
+    _timer._RTO = _timer._initRTO;  // Set the RTO back to its “initial value.”
     _lastAckno = absAckno;
 
     while (!_outstandingSegment.empty() &&
@@ -91,26 +95,21 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
 
     // The TCPSender should fill the window again if new space has opened up
     fill_window();
-    // Set the RTO back to its “initial value.”
-    _timer._RTO = _timer._initRTO;
     // If the sender has any outstanding data, restart the retransmission timer
     if(!_outstandingSegment.empty())
         _timer.start();
-    // Reset the count of “consecutive retransmissions” back to zero
-    _consecutiveRetransmission = 0;
 }
 
 //! \param[in] ms_since_last_tick the number of milliseconds since the last call to this method
 void TCPSender::tick(const size_t ms_since_last_tick) {
     _timer.trick(ms_since_last_tick);
     if(_timer.isRetransmissionTimeout() && !_outstandingSegment.empty()) {
-        TCPSegment tmpSegment = _outstandingSegment.front();    // TODO merge 2 row
-        segments_out().push(tmpSegment);
+        segments_out().push(_outstandingSegment.front() );
         if(_windowSize) {  // If the window size is nonzero
             _consecutiveRetransmission++;   // Keep track of the number of consecutive retransmissions, and increment it because you just retransmitted something
-            _timer._RTO <<= 1;  // Double the value of RTO
+            _timer._RTO <<= 1;  // Double the value of RTO, exponential backoff
         }
-        _timer.start();
+        _timer.start();     // Reset the retransmission timer and start it
     }
     if(_outstandingSegment.empty())
         _timer.stop();
@@ -125,6 +124,7 @@ void TCPSender::send_empty_segment() {
     seg.header().seqno = wrap(_nextSeqno, _isn);
     _segments_out.push(seg);
 }
+
 void TCPSender::sendSegment(TCPSegment &seg) {
     seg.header().seqno = wrap(_nextSeqno, _isn);
     _segments_out.push(seg);
