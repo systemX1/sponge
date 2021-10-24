@@ -77,15 +77,17 @@ void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_si
     if(absAckno < _lastAckno || absAckno > _nextSeqno)
         return;
     _windowSize = window_size;
-    // acknowledge
-    if(absAckno == _lastAckno) {     // no new data
+    // no new data ack, but may have new window_size
+    if(absAckno == _lastAckno) {
         fill_window();
         return;
     }
+    // acknowledge
     _consecutiveRetransmission = 0;
     _timer._RTO = _timer._initRTO;  // Set the RTO back to its “initial value.”
     _lastAckno = absAckno;
 
+    // remove outstanding segments
     while (!_outstandingSegment.empty() &&
            unwrap(_outstandingSegment.front().header().seqno, _isn, _nextSeqno)
            + _outstandingSegment.front().length_in_sequence_space() <= absAckno) {
