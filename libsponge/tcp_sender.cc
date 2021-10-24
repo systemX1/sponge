@@ -40,14 +40,24 @@ void TCPSender::fill_window() {
         return;
     }
 
-    size_t windowSize = !_windowSize ? 1 : _windowSize;
+    size_t windowSize = !_windowSize ? 1 : _windowSize; // 3.2 Page6 *What should I do if the window size is zero?
     size_t validWindowSize = 0;
-    while (!_isFIN && (validWindowSize = windowSize - (_nextSeqno - _lastAckno) ) ) {
+    while ( (validWindowSize = windowSize - (_nextSeqno - _lastAckno) ) ) {
+        if(_isFIN)
+            return;
+        // _stream.eof() but there was no space for fin in the last time
+        if(_stream.eof()) {
+            seg.header().fin = true;
+            sendSegment(seg);
+            _isFIN = true;
+            return;
+        }
+        // read
         size_t readLen = min(TCPConfig::MAX_PAYLOAD_SIZE, validWindowSize );
         string payloadStr = _stream.read(readLen);
-        seg.payload() = Buffer(move(payloadStr));
+        seg.payload() = Buffer(move(payloadStr));       // TODO merge 2 row
 
-        if(_stream.input_ended()) {
+        if(_stream.eof() && validWindowSize > seg.length_in_sequence_space() ) {
             seg.header().fin = true;
             _isFIN = true;
         }
@@ -56,6 +66,7 @@ void TCPSender::fill_window() {
 
         sendSegment(seg);
     }
+
 }
 
 //! \param ackno The remote receiver's ackno (acknowledgment number)
@@ -63,7 +74,7 @@ void TCPSender::fill_window() {
 void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
     uint64_t absAckno = unwrap(ackno, _isn, _lastAckno);
     // not in expection
-    if(absAckno <= _lastAckno || absAckno > _nextSeqno)
+    if(absAckno < _lastAckno || absAckno > _nextSeqno)
         return;
     // acknowledge
     _consecutiveRetransmission = 0;
