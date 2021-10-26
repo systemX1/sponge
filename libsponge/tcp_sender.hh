@@ -72,10 +72,6 @@ class TCPSender {
     size_t _bytesinFlight;
     //! the number of consecutive retransmissions
     size_t _consecutiveRetransmission;
-    //! hasn't syn sent yet
-    bool _isSYN;
-    //! hasn't syn sent yet
-    bool _isFIN;
 
   public:
     //! Initialize a TCPSender
@@ -135,6 +131,12 @@ class TCPSender {
 
     //!
     void sendSegment(TCPSegment &seg);
+
+  public:
+    //! hasn't syn sent yet
+    bool _isSYN;
+    //! hasn't syn sent yet
+    bool _isFIN;
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_SENDER_HH

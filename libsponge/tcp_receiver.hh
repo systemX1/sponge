@@ -24,10 +24,6 @@ class TCPReceiver {
     size_t _netRecvIndex;
     //! The absolute seqno
     uint64_t _absSeq;
-    //! Hasn't syn received yet
-    bool _isSYN;
-    //! Hasn't fin received yet
-    bool _isFIN;
 
   public:
     //! \brief Construct a TCP receiver
@@ -70,6 +66,12 @@ class TCPReceiver {
     ByteStream &stream_out() { return _reassembler.stream_out(); }
     const ByteStream &stream_out() const { return _reassembler.stream_out(); }
     //!@}
+
+  public:
+    //! Hasn't syn received yet
+    bool _isSYN;
+    //! Hasn't fin received yet
+    bool _isFIN;
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_RECEIVER_HH

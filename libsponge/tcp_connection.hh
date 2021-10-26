@@ -13,18 +13,24 @@ class TCPConnection {
     TCPReceiver _receiver{_cfg.recv_capacity};
     TCPSender _sender{_cfg.send_capacity, _cfg.rt_timeout, _cfg.fixed_isn};
 
+    enum State {
+        LISTEN, SYN_RCVD, SYN_SENT, ESTABLISHED, CLOSE_WAIT, LAST_SACK, FIN_WAIT_1, FIN_WAIT2,
+        CLOSING, TIME_WAIT, CLOSED, RESET
+    };
+
+    State _state;
     //! whether the TCPConnection is active
-    bool _isActive{false};
+    bool _isActive{true};
     //!  ms since last segment received
     size_t _ms_since_last_segment_received{0};
-
     //! outbound queue of segments that the TCPConnection wants sent
     std::queue<TCPSegment> _segments_out{};
-
     //! Should the TCPConnection stay active (and keep ACKing)
     //! for 10 * _cfg.rt_timeout milliseconds after both streams have ended,
     //! in case the remote TCPConnection doesn't know we've received its whole stream?
     bool _linger_after_streams_finish{true};
+    //!
+    bool _isRST{false};
 
   public:
     //! \name "Input" interface for the writer
@@ -85,6 +91,12 @@ class TCPConnection {
     bool active() const;
     //!@}
 
+    //! fill the _sender'window, pop all of _sender's segments in queue then push into _segments_out
+    void sendSegment();
+    //!
+    void cleanShutdown();
+    //!
+    void uncleanShutdown(bool rst);
     //! Construct a new connection from a configuration
     explicit TCPConnection(const TCPConfig &cfg) : _cfg{cfg} {}
 
