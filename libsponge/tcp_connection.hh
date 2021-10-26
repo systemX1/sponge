@@ -13,12 +13,12 @@ class TCPConnection {
     TCPReceiver _receiver{_cfg.recv_capacity};
     TCPSender _sender{_cfg.send_capacity, _cfg.rt_timeout, _cfg.fixed_isn};
 
-    enum State {
-        LISTEN, SYN_RCVD, SYN_SENT, ESTABLISHED, CLOSE_WAIT, LAST_SACK, FIN_WAIT_1, FIN_WAIT2,
-        CLOSING, TIME_WAIT, CLOSED, RESET
+    enum State : unsigned {
+        LISTEN = 0ul, SYN_RCVD = 1ul, SYN_SENT = 1ul << 1, ESTABLISHED = 1ul << 2, CLOSE_WAIT = 1ul << 3, LAST_SACK = 1ul << 4,
+        FIN_WAIT_1 = 1ul << 5, FIN_WAIT_2 = 1ul << 6, CLOSING = 1ul << 7, TIME_WAIT = 1ul << 8, CLOSED = 1ul << 9, RESET = 1ul << 10
     };
 
-    State _state;
+    State _state{CLOSED};
     //! whether the TCPConnection is active
     bool _isActive{true};
     //!  ms since last segment received
@@ -91,7 +91,7 @@ class TCPConnection {
     bool active() const;
     //!@}
 
-    //! fill the _sender'window, pop all of _sender's segments in queue then push into _segments_out
+    //! fill the _sender'window, pop all of _sender's segments in the queue then push into _segments_out
     void sendSegment();
     //!
     void cleanShutdown();

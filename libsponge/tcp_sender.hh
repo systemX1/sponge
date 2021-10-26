@@ -74,6 +74,12 @@ class TCPSender {
     size_t _consecutiveRetransmission;
 
   public:
+    //! hasn't syn sent yet
+    bool _isSYN;
+    //! hasn't syn sent yet
+    bool _isFIN;
+
+  public:
     //! Initialize a TCPSender
     TCPSender(size_t capacity = TCPConfig::DEFAULT_CAPACITY,
               uint16_t retx_timeout = TCPConfig::TIMEOUT_DFLT,
@@ -131,12 +137,6 @@ class TCPSender {
 
     //!
     void sendSegment(TCPSegment &seg);
-
-  public:
-    //! hasn't syn sent yet
-    bool _isSYN;
-    //! hasn't syn sent yet
-    bool _isFIN;
 };
 
 #endif  // SPONGE_LIBSPONGE_TCP_SENDER_HH
