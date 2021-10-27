@@ -150,6 +150,8 @@ TCPConnection::~TCPConnection() {
 }
 
 void TCPConnection::sendSegment() {
+    if(_state == LISTEN || _state == CLOSED)
+        return;
     _sender.fill_window();
     TCPSegment seg;
     // pop all of _sender's segments and push into _segments_out
