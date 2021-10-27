@@ -69,11 +69,23 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
                 cleanShutdown();
             }
             break;
-        case FIN_WAIT_1:
+        case FIN_WAIT_1: case FIN_WAIT_2:
             _sender.ack_received(seg.header().ackno, seg.header().win);
-            if(seg.header().ack) {
+            if(seg.header().ack && !seg.header().fin) {
                 _state = FIN_WAIT_2;
+            } else if(seg.header().ack && seg.header().fin) {
+                _sender.send_empty_segment();
+                sendSegment();
+                _state = TIME_WAIT;
             }
+            break;
+        case TIME_WAIT:
+            _sender.ack_received(seg.header().ackno, seg.header().win);
+            if(seg.header().ack && seg.header().fin) {
+                _sender.send_empty_segment();
+                sendSegment();
+            }
+            cleanShutdown();
             break;
         default:    break;
     }
@@ -98,6 +110,7 @@ void TCPConnection::tick(const size_t ms_since_last_tick) {
     if(_sender.consecutive_retransmissions() > TCPConfig::MAX_RETX_ATTEMPTS)
         uncleanShutdown(true);
     sendSegment();
+    cleanShutdown();
 }
 
 void TCPConnection::end_input_stream() {
