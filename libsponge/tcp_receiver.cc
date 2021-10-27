@@ -17,7 +17,7 @@ TCPReceiver::TCPReceiver(size_t capacity)
 
 void TCPReceiver::segment_received(const TCPSegment &seg) {
     // handle the syn flag
-    if(_isSYN && seg.header().syn)  // already syn, reject the others
+    if(_isSYN && seg.header().syn) // already syn, reject the others
         return;
     _isSYN |= seg.header().syn;     // save syn status
     if(!_isSYN)                     // hasn't syn yet
@@ -33,8 +33,7 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
     _netRecvIndex = _reassembler.firstUnassembledIndex() + _isSYN;  // _reassembler itself won't take the SYN into consideration
 
     // handle the fin flag
-    if(_isFIN && seg.header().fin)  // already fin, reject the others
-        return;
+    // already fin, but don't need to reject the others, because the _netRecvIndex has been reset
     _isFIN |= seg.header().fin;     // save fin status
     if(_reassembler.stream_out().input_ended()) // add fin
         _netRecvIndex++;

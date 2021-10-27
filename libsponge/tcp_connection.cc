@@ -46,7 +46,7 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             sendSegment();
             _state = ESTABLISHED;
             break;
-        case ESTABLISHED:
+        case ESTABLISHED: case CLOSE_WAIT:
             _sender.ack_received(seg.header().ackno, seg.header().win);
             // if the rst (reset) flag is set, sets both the inbound and outbound streams to the error
             // state and kills the connection permanently
@@ -57,7 +57,6 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             }
             if(_receiver._isFIN) {
                 _sender.send_empty_segment();
-                sendSegment();
                 _state = CLOSE_WAIT;
             }
             sendSegment();
@@ -68,6 +67,12 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             if(!_sender.bytes_in_flight()) {
                 _state = CLOSED;
                 cleanShutdown();
+            }
+            break;
+        case FIN_WAIT_1:
+            _sender.ack_received(seg.header().ackno, seg.header().win);
+            if(seg.header().ack) {
+                _state = FIN_WAIT_2;
             }
             break;
         default:    break;

@@ -66,7 +66,6 @@ void TCPSender::fill_window() {
 
         sendSegment(seg);
     }
-
 }
 
 //! \param ackno The remote receiver's ackno (acknowledgment number)
