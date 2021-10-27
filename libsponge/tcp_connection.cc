@@ -28,7 +28,16 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             return;
     }
     _ms_since_last_segment_received = 0;
-
+    if(_state == ) {
+        cerr << " _state: " << _state << " seg: "
+             << "ack: " << seg.header().ack << " "
+             << "syn: " << seg.header().syn << " "
+             << "seqno: " << seg.header().seqno << " "
+             << "ackno: " << seg.header().ackno << " "
+             << "fin: " << seg.header().fin << " "
+             << "payload: " << seg.payload().size() << " "
+             << "!!\n";
+    }
 
     // gives the segment to the TCPReceiver and TCPSender
     _receiver.segment_received(seg);
@@ -75,17 +84,18 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             sendSegment();
             break;
         case LAST_SACK:
-            // exclude bad ack
+            // discard bad ack
             if(!_sender.bytes_in_flight() )
                 _state = CLOSED;
             break;
         case FIN_WAIT_1: case FIN_WAIT_2:
-            if(seg.header().ack && !seg.header().fin) {
+            if(seg.header().ack && !seg.header().fin)
                 _state = FIN_WAIT_2;
-            } else if(seg.header().ack && seg.header().fin) {
+            else if(seg.header().ack && seg.header().fin)
+                _state = TIME_WAIT;
+            if(seg.length_in_sequence_space()) {
                 _sender.send_empty_segment();
                 sendSegment();
-                _state = TIME_WAIT;
             }
             break;
         case TIME_WAIT:

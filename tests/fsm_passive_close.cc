@@ -107,6 +107,18 @@ int main() {
 
             test_3.execute(ExpectState{State::CLOSED});
         }
+//
+//        TCPConfig cfg_my{64000, 1000, 1000, WrappingInt32{10000}};
+//        // test #4: start in ESTABLSHED, send FIN (customize)
+//        {
+//            TCPTestHarness test_4 = TCPTestHarness::in_established(cfg_my);
+//            test_4.execute(ExpectState{State::ESTABLISHED});
+//
+//            const WrappingInt32 rx_seqno{1};
+//            test_4.send_fin(rx_seqno, WrappingInt32{0});
+//
+//            test_4.execute(ExpectState{State::CLOSE_WAIT});
+//        }
     } catch (const exception &e) {
         cerr << e.what() << endl;
         return 1;
