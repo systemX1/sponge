@@ -28,16 +28,16 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             return;
     }
     _ms_since_last_segment_received = 0;
-    if(_state == ) {
-        cerr << " _state: " << _state << " seg: "
-             << "ack: " << seg.header().ack << " "
-             << "syn: " << seg.header().syn << " "
-             << "seqno: " << seg.header().seqno << " "
-             << "ackno: " << seg.header().ackno << " "
-             << "fin: " << seg.header().fin << " "
-             << "payload: " << seg.payload().size() << " "
-             << "!!\n";
-    }
+//    if(_state == FIN_WAIT_2 || _state == CLOSE_WAIT) {
+//        cerr << " _state: " << _state << " seg: "
+//             << "ack: " << seg.header().ack << " "
+//             << "syn: " << seg.header().syn << " "
+//             << "seqno: " << seg.header().seqno << " "
+//             << "ackno: " << seg.header().ackno << " "
+//             << "fin: " << seg.header().fin << " "
+//             << "payload: " << seg.payload().size() << " "
+//             << "!!\n";
+//    }
 
     // gives the segment to the TCPReceiver and TCPSender
     _receiver.segment_received(seg);
