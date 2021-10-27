@@ -29,8 +29,10 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
     }
     _ms_since_last_segment_received = 0;
 
-    // gives the segment to the TCPReceiver
+
+    // gives the segment to the TCPReceiver and TCPSender
     _receiver.segment_received(seg);
+    _sender.ack_received(seg.header().ackno, seg.header().win);
 
     switch (_state) {
         case LISTEN:
@@ -39,38 +41,45 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
                 _state = ESTABLISHED;
                 return;
             }
+            if(seg.header().rst)
+                uncleanShutdown(false);
             break;
         case SYN_SENT:
-            _sender.ack_received(seg.header().ackno, seg.header().win);
+            if(seg.header().ack && (seg.payload().size() || !_sender.lastAbsAckno()) )  // bad ACKs in SYN_SENT should be ignored
+                return;
+            if(seg.header().rst) {
+                uncleanShutdown(false);
+                _state = LISTEN;
+                return;
+            }
             _sender.send_empty_segment();
             sendSegment();
             _state = ESTABLISHED;
             break;
         case ESTABLISHED: case CLOSE_WAIT:
-            _sender.ack_received(seg.header().ackno, seg.header().win);
             // if the rst (reset) flag is set, sets both the inbound and outbound streams to the error
             // state and kills the connection permanently
             if(seg.header().rst) {
-                uncleanShutdown(true);
+                uncleanShutdown(false);
                 _state = LISTEN;
                 return;
             }
             if(_receiver._isFIN) {
                 _sender.send_empty_segment();
                 _state = CLOSE_WAIT;
-            }
+            } else if(seg.length_in_sequence_space())
+                _sender.send_empty_segment();
+            else if(_receiver.ackno().has_value() && !seg.length_in_sequence_space()
+                     && seg.header().seqno == _receiver.ackno().value() - 1)
+                _sender.send_empty_segment();
             sendSegment();
             break;
         case LAST_SACK:
-            _sender.ack_received(seg.header().ackno, seg.header().win);
             // exclude bad ack
-            if(!_sender.bytes_in_flight()) {
+            if(!_sender.bytes_in_flight() )
                 _state = CLOSED;
-                cleanShutdown();
-            }
             break;
         case FIN_WAIT_1: case FIN_WAIT_2:
-            _sender.ack_received(seg.header().ackno, seg.header().win);
             if(seg.header().ack && !seg.header().fin) {
                 _state = FIN_WAIT_2;
             } else if(seg.header().ack && seg.header().fin) {
@@ -80,15 +89,14 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             }
             break;
         case TIME_WAIT:
-            _sender.ack_received(seg.header().ackno, seg.header().win);
             if(seg.header().ack && seg.header().fin) {
                 _sender.send_empty_segment();
                 sendSegment();
             }
-            cleanShutdown();
             break;
         default:    break;
     }
+    cleanShutdown();
 }
 
 bool TCPConnection::active() const { return _isActive; }

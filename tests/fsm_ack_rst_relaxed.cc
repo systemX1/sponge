@@ -20,7 +20,7 @@ static void ack_listen_test(const TCPConfig &cfg,
     try {
         TCPTestHarness test = TCPTestHarness::in_listen(cfg);
 
-        // any ACK should result in a RST
+        // any ACK should result in an RST
         test.send_ack(seqno, ackno);
 
         test.execute(ExpectState{State::LISTEN});
@@ -42,7 +42,7 @@ static void ack_rst_syn_sent_test(const TCPConfig &cfg,
         // unacceptable ACKs should be ignored
         test.send_ack(seqno, ackno);
         test.execute(ExpectState{State::SYN_SENT});
-        test.execute(ExpectNoSegment{}, "test 3 failed: bad ACKs in SYN_SENT should be ignored");
+        test.execute(ExpectNoSegment{}, "test 5 failed: bad ACKs in SYN_SENT should be ignored");
     } catch (const exception &e) {
         throw runtime_error(string(e.what()) + " (ack_rst_syn_sent_test called from line " + to_string(lineno) + ")");
     }
