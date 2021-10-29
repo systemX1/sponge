@@ -140,7 +140,7 @@ void TCPSpongeSocket<AdaptT>::_initialize_TCP(const TCPConfig &config) {
                 cerr << "DEBUG: Inbound stream from " << _datagram_adapter.config().destination.to_string()
                      << " finished " << (inbound.error() ? "with an error/reset.\n" : "cleanly.\n");
                 if (_tcp.value().state() == TCPState::State::TIME_WAIT) {
-                    cerr << "DEBUG: Waiting for lingering segments (e.g. retransmissions of FIN) from peer...\n";
+                    cerr << "DEBUG: Waiting for lingering segments (e.g. retransmissions of FIN) from peer..." <<  _datagram_adapter.config().destination.to_string() << "\n";
                 }
             }
         },
@@ -179,7 +179,7 @@ template <typename AdaptT>
 TCPSpongeSocket<AdaptT>::~TCPSpongeSocket() {
     try {
         if (_tcp_thread.joinable()) {
-            cerr << "Warning: unclean shutdown of TCPSpongeSocket\n";
+            cerr << _datagram_adapter.config().destination.to_string() << " Warning: unclean shutdown of TCPSpongeSocket\n";
             // force the other side to exit
             _abort.store(true);
             _tcp_thread.join();
@@ -193,7 +193,7 @@ template <typename AdaptT>
 void TCPSpongeSocket<AdaptT>::wait_until_closed() {
     shutdown(SHUT_RDWR);
     if (_tcp_thread.joinable()) {
-        cerr << "DEBUG: Waiting for clean shutdown... ";
+        cerr << "DEBUG: Waiting for clean shutdown... " << _datagram_adapter.config().destination.to_string() << "\n";
         _tcp_thread.join();
         cerr << "done.\n";
     }
@@ -259,7 +259,7 @@ void TCPSpongeSocket<AdaptT>::_tcp_main() {
         _tcp_loop([] { return true; });
         shutdown(SHUT_RDWR);
         if (not _tcp.value().active()) {
-            cerr << "DEBUG: TCP connection finished "
+            cerr << "DEBUG: TCP connection finished " << _datagram_adapter.config().destination.to_string() << " "
                  << (_tcp.value().state() == TCPState::State::RESET ? "uncleanly" : "cleanly.\n");
         }
         _tcp.reset();

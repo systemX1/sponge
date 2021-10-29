@@ -28,16 +28,12 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             return;
     }
     _ms_since_last_segment_received = 0;
-//    if(_state == FIN_WAIT_2 || _state == CLOSE_WAIT) {
-//        cerr << " _state: " << _state << " seg: "
-//             << "ack: " << seg.header().ack << " "
-//             << "syn: " << seg.header().syn << " "
-//             << "seqno: " << seg.header().seqno << " "
-//             << "ackno: " << seg.header().ackno << " "
-//             << "fin: " << seg.header().fin << " "
-//             << "payload: " << seg.payload().size() << " "
-//             << "!!\n";
-//    }
+    if(_state != CLOSING) {
+        fprintf( stderr, " _state: %s syn: %d ack: %d fin: %d seqno: %u ackno: %u payload: %zu win_size: %hu @seg_recvd\n",
+                stateStr.at(_state).c_str(), seg.header().syn, seg.header().ack, seg.header().fin,
+                seg.header().seqno.raw_value(), seg.header().ackno.raw_value(),
+                seg.payload().size(), seg.header().win);
+    }
 
     // gives the segment to the TCPReceiver and TCPSender
     _receiver.segment_received(seg);
@@ -91,7 +87,7 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
         case FIN_WAIT_1: case FIN_WAIT_2:
             if(seg.header().ack && !seg.header().fin)
                 _state = FIN_WAIT_2;
-            else if(seg.header().ack && seg.header().fin)
+            else if(seg.header().ack && _receiver._isFIN && _receiver.ackno() == seg.header().ackno)
                 _state = TIME_WAIT;
             if(seg.length_in_sequence_space()) {
                 _sender.send_empty_segment();
@@ -127,6 +123,13 @@ void TCPConnection::tick(const size_t ms_since_last_tick) {
     _sender.tick(ms_since_last_tick);
     if(_sender.consecutive_retransmissions() > TCPConfig::MAX_RETX_ATTEMPTS)
         uncleanShutdown(true);
+    if( ((_ms_since_last_segment_received >=  9 * _cfg.rt_timeout && _ms_since_last_segment_received <= _cfg.rt_timeout * 11) ||  _ms_since_last_segment_received >= _cfg.rt_timeout * 505 )
+            && _ms_since_last_segment_received % 10 == 0) {
+        cerr << " _state: " << _state
+             << " tick: " << _ms_since_last_segment_received << " "
+             << "rt_timeout: " << 10 * _cfg.rt_timeout << " "
+             << "@tick\n";
+    }
     sendSegment();
     cleanShutdown();
 }
@@ -172,6 +175,14 @@ void TCPConnection::sendSegment() {
             seg.header().ackno = _receiver.ackno().value();
             seg.header().win = _receiver.window_size();
         }
+
+        if(_state != CLOSING) {
+            fprintf( stderr, " _state: %s syn: %d ack: %d fin: %d seqno: %u ackno: %u payload: %zu win_size: %hu @seg_sent\n",
+                    stateStr.at(_state).c_str(), seg.header().syn, seg.header().ack, seg.header().fin,
+                    seg.header().seqno.raw_value(), seg.header().ackno.raw_value(),
+                    seg.payload().size(), seg.header().win);
+        }
+
         if(_isRST) {
             seg.header().rst = true;
             _isRST = false;
@@ -195,6 +206,12 @@ void TCPConnection::sendSegment() {
 }
 
 void TCPConnection::cleanShutdown() {
+    if( _ms_since_last_segment_received % 300 == 0 && _ms_since_last_segment_received) {
+        cerr << " _state: " << _state
+             << " tick: " << _ms_since_last_segment_received << " "
+             << "rt_timeout: " << 10 * _cfg.rt_timeout << " "
+             << "@cleanShutdown_called\n";
+    }
     // Option B: passive close
     if (_receiver.stream_out().input_ended() && !(_sender.stream_in().eof() ) )
         _linger_after_streams_finish = false;
@@ -202,11 +219,19 @@ void TCPConnection::cleanShutdown() {
     if (_sender.stream_in().eof()
         && _receiver.stream_out().input_ended()
         && _sender.bytes_in_flight() == 0
-        && (!_linger_after_streams_finish || time_since_last_segment_received() >= 10 * _cfg.rt_timeout) )
+        && (!_linger_after_streams_finish || _ms_since_last_segment_received >= 10 * _cfg.rt_timeout) ) {
             _isActive = false;
+            fprintf( stderr, " _state: %u set _isActive=false @cleanShutdown\n", _state);
+    }
 }
 
 void TCPConnection::uncleanShutdown(bool rst) {
+    if(_state == LAST_SACK || _state == TIME_WAIT || _state == FIN_WAIT_2) {
+        cerr << " _state: " << _state << " seg: "
+             << "tick: " << _ms_since_last_segment_received << " "
+             << "rt_timeout: " << 10 * _cfg.rt_timeout << " "
+             << "@uncleanShutdown_called\n";
+    }
     _receiver.stream_out().set_error();
     _sender.stream_in().set_error();
     if(rst) {
