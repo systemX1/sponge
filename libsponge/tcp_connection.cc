@@ -145,7 +145,6 @@ TCPConnection::~TCPConnection() {
     try {
         if (active()) {
             cerr << "Warning: Unclean shutdown of TCPConnection\n";
-
             // Your code here: need to send an RST segment to the peer
             uncleanShutdown(true);
         }
