@@ -30,8 +30,10 @@ void StreamReassembler::push_substring(const string &data, size_t index, bool eo
         _isEOF = false;
         seg.data.assign(seg.data.begin(), seg.data.begin() + static_cast<long>(_firstUnassembledIndex + _capacity - index));
     } else if(data.empty() || index + data.length() <= _firstUnassembledIndex) {       // no data or
-        if(_isEOF)
+        if(_isEOF && !stream_out().input_ended()) {
             _output.end_input();
+            fprintf( stderr, " _LINE: %d data: %lu @end_input\n", __LINE__, data.length() );
+        }
         return;
     }
     if(index < _firstUnassembledIndex) {           // partially before _firstUnassembledIndex
@@ -69,8 +71,10 @@ void StreamReassembler::push_substring(const string &data, size_t index, bool eo
     }
 
     // let output steam stop
-    if (empty() && _isEOF)
+    if (empty() && _isEOF && !stream_out().input_ended()) {
         _output.end_input();
+        fprintf( stderr, " _LINE: %d data: %lu @end_input\n", __LINE__, data.length() );
+    }
 }
 
 bool StreamReassembler::isOverlap(size_t begin, size_t len, size_t begin2) {

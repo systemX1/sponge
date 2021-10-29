@@ -21,10 +21,10 @@ class TCPConnection {
 //    };
     enum State{
         LISTEN = 0ul, SYN_RCVD, SYN_SENT, ESTABLISHED, CLOSE_WAIT, LAST_SACK,
-        FIN_WAIT_1, FIN_WAIT_2, CLOSING, TIME_WAIT, CLOSED, RESET
+        FIN_WAIT_1, FIN_WAIT_2, CLOSING, TIME_WAIT, CLOSED
     };
     std::vector<std::string> stateStr = {"LISTEN", "SYN_RCVD", "SYN_SENT", "ESTABLISHED", "CLOSE_WAIT", "LAST_SACK",
-                                    "FIN_WAIT_1", "FIN_WAIT_2", "CLOSING", "TIME_WAIT", "CLOSED", "RESET"};
+                                    "FIN_WAIT_1", "FIN_WAIT_2", "CLOSING", "TIME_WAIT", "CLOSED"};
 
     State _state{CLOSED};
     //! whether the TCPConnection is active
