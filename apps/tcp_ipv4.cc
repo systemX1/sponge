@@ -14,7 +14,7 @@
 using namespace std;
 
 constexpr const char *TUN_DFLT = "tun144";
-const string LOCAL_ADDRESS_DFLT = "169.254.144.9";
+const string LOCAL_ADDRESS_DFLT = "169.253.144.9";
 
 static void show_usage(const char *argv0, const char *msg) {
     cout << "Usage: " << argv0 << " [options] <host> <port>\n\n"

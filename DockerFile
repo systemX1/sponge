@@ -1,0 +1,36 @@
+# in directory ~/Repo/others/CS-144/sponge
+# docker build -f DockerFile -t archlinux_cs144:latest .
+# docker run -it --privileged --cpus=6 archlinux_cs144:latest
+
+FROM archlinux
+WORKDIR /tmp/sponge
+
+COPY . .
+RUN set -x; buildDeps='gcc make cmake vim sudo inetutils' \
+	&& username='sy' && password='6666' \
+	&& pacman -Sy --noconfirm $buildDeps \
+    	&& useradd -m -G wheel $username \
+    	&& echo "$username:$password" | chpasswd \
+    	&& sed -i '85c %wheel ALL=(ALL) NOPASSWD: ALL' /etc/sudoers \
+    	&& cd cmake-build-debug \
+    	&& rm -rf * \
+    	&& cmake .. \
+    	&& make -j6
+
+WORKDIR /tmp/sponge/cmake-build-debug
+USER sy
+EXPOSE 9000
+
+# #!/bin/bash
+# set -x
+# buildDeps='gcc sudo make cmake vim inetutils'
+# username='sy'
+# password='6666'
+# pacman -Sy --noconfirm $buildDeps
+# useradd -m -G wheel $username
+# echo "$username:$password" | chpasswd
+# mkdir build
+# cd build
+# rm -rf *
+# cmake ..
+
