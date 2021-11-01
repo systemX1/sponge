@@ -155,7 +155,7 @@ make_test_file () {
 
 exit_cleanup () {
     set +u
-    rm -f "${TEST_IN_FILE}" "${TEST_OUT_FILE}" "${TEST_OUT2_FILE}"
+    rm -f "${TEST_IN_FILE}" "${TEST_OUT_FILE}" "${TEST_OUT2_FILE}"169
     [ ! -z "$COPROC_PID" ] && kill ${COPROC_PID}
 }
 

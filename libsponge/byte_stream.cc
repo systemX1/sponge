@@ -23,23 +23,23 @@ size_t ByteStream::write(const string &data) {
         return 0;
     size_t len = ( data.length() > (_capacity - _buffer.size()) ) ? (_capacity - _buffer.size()) : data.length();
     _writeCount += len;
-    for (size_t i = 0; i < len; i++)
-        _buffer.emplace_back(data[i]);
+    _buffer.append(BufferList(move(string().assign(data.begin(), data.begin() + len) ) ) );
     return len;
 }
 
 //! \param[in] len bytes will be copied from the output side of the buffer
 string ByteStream::peek_output(size_t len) const {
     size_t length = len > _buffer.size() ? _buffer.size() : len;
-    return string().assign(_buffer.begin(), _buffer.begin() + static_cast<long>(length) );
+    string s=_buffer.concatenate();
+    return string().assign(s.begin(), s.begin() + length);
+    //return string().assign(_buffer.concatenate().begin(), _buffer.concatenate().begin() + static_cast<long>(length) );
 }
 
 //! \param[in] len bytes will be removed from the output side of the buffer
 void ByteStream::pop_output(size_t len) {
     size_t length = len > _buffer.size() ? _buffer.size() : len;
     _readCount += length;
-    while (length--)
-        _buffer.pop_front();
+    _buffer.remove_prefix(length);
 }
 
 std::string ByteStream::read(size_t len) {

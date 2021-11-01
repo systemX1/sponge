@@ -32,7 +32,7 @@ void StreamReassembler::push_substring(const string &data, size_t index, bool eo
     } else if(data.empty() || index + data.length() <= _firstUnassembledIndex) {       // no data or reassembled redundant segment
         if(_isEOF && !_unassembledByte && !stream_out().input_ended()) {
             _output.end_input();
-            fprintf( stderr, " _LINE: %d data: %lu _unassembledByte: %lu @end_input\n", __LINE__, data.length(), _unassembledByte );
+//            fprintf( stderr, " _LINE: %d data: %lu _unassembledByte: %lu @end_input\n", __LINE__, data.length(), _unassembledByte );
         }
         return;
     }
@@ -73,7 +73,7 @@ void StreamReassembler::push_substring(const string &data, size_t index, bool eo
     // let output steam stop
     if (empty() && _isEOF && !stream_out().input_ended()) {
         _output.end_input();
-        fprintf( stderr, " _LINE: %d data: %lu _unassembledByte: %lu @end_input\n", __LINE__, data.length(), _unassembledByte );
+//        fprintf( stderr, " _LINE: %d data: %lu _unassembledByte: %lu @end_input\n", __LINE__, data.length(), _unassembledByte );
     }
 }
 

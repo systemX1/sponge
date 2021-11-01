@@ -288,7 +288,7 @@ void CS144TCPSocket::connect(const Address &address) {
     tcp_config.rt_timeout = 100;
 
     FdAdapterConfig multiplexer_config;
-    multiplexer_config.source = {"169.254.144.9", to_string(uint16_t(random_device()()))};
+    multiplexer_config.source = {"169.253.144.9", to_string(uint16_t(random_device()()))};
     multiplexer_config.destination = address;
 
     TCPOverIPv4SpongeSocket::connect(tcp_config, multiplexer_config);

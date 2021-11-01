@@ -19,8 +19,8 @@ class ByteStream {
     // that's a sign that you probably want to keep exploring
     // different approaches.
 
-
-    std::deque<char> _buffer;
+    BufferList _buffer;
+//    std::deque<char> _buffer;
     size_t _capacity;
     size_t _writeCount;
     size_t _readCount;

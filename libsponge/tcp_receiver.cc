@@ -37,6 +37,15 @@ void TCPReceiver::segment_received(const TCPSegment &seg) {
     _isFIN |= seg.header().fin;     // save fin status
     if(_reassembler.stream_out().input_ended()) // add fin
         _netRecvIndex++;
+
+    if(seg.header().ack) {
+        fprintf( stderr, "_LINE: %d _absSeq: %lu _netRecvIndex: %lu unassembled_bytes(): %lu "
+                        "syn: %d ack: %d fin: %d seqno: %u ackno: %u payload: %zu win_size: %hu @receiver_segment_received\n",
+                __LINE__, _absSeq, _netRecvIndex, unassembled_bytes(),
+                 seg.header().syn, seg.header().ack, seg.header().fin,
+                seg.header().seqno.raw_value(), seg.header().ackno.raw_value(),
+                seg.payload().size(), seg.header().win);
+    }
 }
 
 optional<WrappingInt32> TCPReceiver::ackno() const {

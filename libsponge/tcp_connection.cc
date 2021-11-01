@@ -72,10 +72,8 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
             if(_receiver._isFIN) {
                 _sender.send_empty_segment();
                 _state = CLOSE_WAIT;
-            } else if(seg.length_in_sequence_space())
-                _sender.send_empty_segment();
-            else if(_receiver.ackno().has_value() && !seg.length_in_sequence_space()
-                     && seg.header().seqno == _receiver.ackno().value() - 1)
+            } else if(seg.length_in_sequence_space() || (_receiver.ackno().has_value() && !seg.length_in_sequence_space()
+                     && seg.header().seqno == _receiver.ackno().value() - 1))
                 _sender.send_empty_segment();
             sendSegment();
             break;
@@ -85,7 +83,7 @@ void TCPConnection::segment_received(const TCPSegment &seg) {
                 _state = CLOSED;
             break;
         case FIN_WAIT_1: case FIN_WAIT_2: case TIME_WAIT:
-            if(seg.header().ack && !seg.header().fin)
+            if(_state == FIN_WAIT_1 && seg.header().ack && !seg.header().fin)
                 _state = FIN_WAIT_2;
             else if(seg.header().ack && _receiver._isFIN && _receiver.ackno() == seg.header().ackno + seg.length_in_sequence_space())
                 _state = TIME_WAIT;

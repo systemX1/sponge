@@ -90,6 +90,9 @@ class BufferList {
     //! \brief Size of the string
     size_t size() const;
 
+    //! \brief Is empty
+    bool empty() const {return size() == 0; }
+
     //! \brief Make a copy to a new std::string
     std::string concatenate() const;
 };
