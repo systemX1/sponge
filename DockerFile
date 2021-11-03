@@ -6,7 +6,7 @@ FROM archlinux
 WORKDIR /tmp/sponge
 
 COPY . .
-RUN set -x; buildDeps='gcc make cmake vim sudo inetutils' \
+RUN set -x; buildDeps='gcc make cmake vim sudo' \
 	&& username='sy' && password='6666' \
 	&& pacman -Sy --noconfirm $buildDeps \
     	&& useradd -m -G wheel $username \
@@ -15,11 +15,10 @@ RUN set -x; buildDeps='gcc make cmake vim sudo inetutils' \
     	&& cd cmake-build-debug \
     	&& rm -rf * \
     	&& cmake .. \
-    	&& make -j6
+    	&& make -j8
 
 WORKDIR /tmp/sponge/cmake-build-debug
 USER sy
-EXPOSE 9000
 
 # #!/bin/bash
 # set -x

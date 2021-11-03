@@ -97,6 +97,7 @@ EventLoop::Result EventLoop::wait_next_event(const int timeout_ms) {
     try {
         if (0 == SystemCall("poll", ::poll(pollfds.data(), pollfds.size(), timeout_ms))) {
             return Result::Timeout;
+//            return Result::Success;
         }
     } catch (unix_error const &e) {
         if (e.code().value() == EINTR) {

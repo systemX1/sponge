@@ -193,43 +193,23 @@ add_test(NAME t_isnD_128K_8K_l       COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -is
 add_test(NAME t_isnD_128K_8K_L       COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isDnd 128K -w 8K -L ${LOSS_RATE})
 add_test(NAME t_isnD_128K_8K_lL      COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isDnd 128K -w 8K -l ${LOSS_RATE} -L ${LOSS_RATE})
 
-#add_test(NAME t_icoS_128K_8K_l   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icSod 128K -w 8K -l ${LOSS_RATE})
-#add_test(NAME t_icoS_128K_8K_L   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icSod 128K -w 8K -L ${LOSS_RATE})
-#add_test(NAME t_icoS_128K_8K_lL  COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icSod 128K -w 8K -l ${LOSS_RATE} -L ${LOSS_RATE})
-#add_test(NAME t_icoR_128K_8K_l   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icRod 128K -w 8K -l ${LOSS_RATE})
-#add_test(NAME t_icoR_128K_8K_L   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icRod 128K -w 8K -L ${LOSS_RATE})
-#add_test(NAME t_icoR_128K_8K_lL  COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icRod 128K -w 8K -l ${LOSS_RATE} -L ${LOSS_RATE})
-#add_test(NAME t_icoD_128K_8K_l   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icDod 128K -w 8K -l ${LOSS_RATE})
-#add_test(NAME t_icoD_128K_8K_L   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icDod 128K -w 8K -L ${LOSS_RATE})
-#add_test(NAME t_icoD_128K_8K_lL  COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -icDod 128K -w 8K -l ${LOSS_RATE} -L ${LOSS_RATE})
-
-#add_test(NAME t_isoS_128K_8K_l   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isSod 128K -w 8K -l ${LOSS_RATE})
-#add_test(NAME t_isoS_128K_8K_L   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isSod 128K -w 8K -L ${LOSS_RATE})
-#add_test(NAME t_isoS_128K_8K_lL  COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isSod 128K -w 8K -l ${LOSS_RATE} -L ${LOSS_RATE})
-#add_test(NAME t_isoR_128K_8K_l   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isRod 128K -w 8K -l ${LOSS_RATE})
-#add_test(NAME t_isoR_128K_8K_L   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isRod 128K -w 8K -L ${LOSS_RATE})
-#add_test(NAME t_isoR_128K_8K_lL  COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isRod 128K -w 8K -l ${LOSS_RATE} -L ${LOSS_RATE})
-#add_test(NAME t_isoD_128K_8K_l   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isDod 128K -w 8K -l ${LOSS_RATE})
-#add_test(NAME t_isoD_128K_8K_L   COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isDod 128K -w 8K -L ${LOSS_RATE})
-#add_test(NAME t_isoD_128K_8K_lL  COMMAND "${PROJECT_SOURCE_DIR}/txrx.sh" -isDod 128K -w 8K -l ${LOSS_RATE} -L ${LOSS_RATE})
-
-add_custom_target (check_webget COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_webget'
+add_custom_target (check_webget COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 4 -R 't_webget'
                               COMMENT "Testing webget...")
-add_custom_target (check_lab0 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_webget|t_byte_stream|_dt'
+add_custom_target (check_lab0 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 4 -R 't_webget|t_byte_stream|_dt'
                               COMMENT "Testing Lab 0...")
-add_custom_target (check_lab1 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_strm_reassem_|t_byte_stream|_dt'
+add_custom_target (check_lab1 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 4 -R 't_strm_reassem_|t_byte_stream|_dt'
                               COMMENT "Testing the stream reassembler...")
-add_custom_target (check_lab2 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_recv_|t_wrapping_|t_strm_reassem_|t_byte_stream|_dt'
+add_custom_target (check_lab2 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 4 -R 't_recv_|t_wrapping_|t_strm_reassem_|t_byte_stream|_dt'
                               COMMENT "Testing the TCP receiver...")
-add_custom_target (check_lab3 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R 't_send_|t_recv_|t_wrapping_|t_strm_reassem_|t_byte_stream|_dt'
+add_custom_target (check_lab3 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 4 -R 't_send_|t_recv_|t_wrapping_|t_strm_reassem_|t_byte_stream|_dt'
                               COMMENT "Testing the TCP sender...")
 add_custom_target (check_lab4 COMMAND "${PROJECT_SOURCE_DIR}/tun.sh" check 144 145
-                              COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R "^t_"
+                              COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 4 --repeat until-pass:3 -R "^t_"
                               COMMENT "Testing the TCP connection...")
 add_custom_target (check_lab5 COMMAND "${PROJECT_SOURCE_DIR}/tap.sh" check 10
-                              COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R '^t_webget|^arp_'
+                              COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 4 -R '^t_webget|^arp_'
                               COMMENT "Testing Lab 5...")
-add_custom_target (check_lab6 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 10 -R '^arp_|^router_'
+add_custom_target (check_lab6 COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --timeout 4 -R '^arp_|^router_'
                               COMMENT "Testing Lab 6...")
 
 add_custom_target (check COMMAND "${PROJECT_SOURCE_DIR}/tun.sh" check 144 145

@@ -71,24 +71,18 @@ void TCPSender::fill_window() {
 //! \param ackno The remote receiver's ackno (acknowledgment number)
 //! \param window_size The remote receiver's advertised window size
 void TCPSender::ack_received(const WrappingInt32 ackno, const uint16_t window_size) {
-    if(_isFIN) {
-        fprintf(stderr, "_LINE: %d _lastAckno: %lu ackno: %u _bytesinFlight: %zu @sender_ack_received\n",
-        __LINE__, _lastAckno, ackno.raw_value(), _bytesinFlight);
-    }
+//    if(_isFIN) {
+//        fprintf(stderr, "_LINE: %d _lastAckno: %lu ackno: %u _bytesinFlight: %zu @sender_ack_received\n",
+//        __LINE__, _lastAckno, ackno.raw_value(), _bytesinFlight);
+//    }
     uint64_t absAckno = unwrap(ackno, _isn, _lastAckno);
-    uint32_t sameAcknoNum = 0;
     // not in expection
     if(absAckno < _lastAckno || absAckno > _nextSeqno)
         return;
     _windowSize = window_size;
     // no new data ack, but may have new window_size
     if(absAckno == _lastAckno) {
-        sameAcknoNum++;
         fill_window();
-        if(sameAcknoNum == 3 && !_outstandingSegment.empty()) {
-            segments_out().push(_outstandingSegment.front() );
-            sameAcknoNum = 0;
-        }
         return;
     }
     // acknowledge
