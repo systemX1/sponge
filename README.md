@@ -4,8 +4,8 @@
 # linux
 git clone https://github.com/systemX1/sponge
 mkdir build && cd build
-cmake .. && make -j6 && make check_lab4 			 # test cases
-./appstcp_benchmark                                   # benchmark
+cmake .. && make -j6 && make check_lab4               # test cases
+./apps/tcp_benchmark                                  # benchmark
 gprof ./apps/tcp_benchmark > tcp_benchmark_log.txt    # profiler
 
 # or use docker
