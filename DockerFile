@@ -7,7 +7,7 @@ WORKDIR /tmp/sponge
 
 COPY . .
 RUN set -x; buildDeps='gcc make cmake vim sudo' \
-	&& username='sy' && password='6666' \
+	&& username='sponge' && password='Tcp$impl' \
 	&& pacman -Sy --noconfirm $buildDeps \
     	&& useradd -m -G wheel $username \
     	&& echo "$username:$password" | chpasswd \
@@ -15,7 +15,7 @@ RUN set -x; buildDeps='gcc make cmake vim sudo' \
     	&& cd cmake-build-debug \
     	&& rm -rf * \
     	&& cmake .. \
-    	&& make -j8
+    	&& make -j9
 
 WORKDIR /tmp/sponge/cmake-build-debug
 USER sy
@@ -23,8 +23,8 @@ USER sy
 # #!/bin/bash
 # set -x
 # buildDeps='gcc sudo make cmake vim inetutils'
-# username='sy'
-# password='6666'
+# username='sponge'
+# password='Tcp$impl'
 # pacman -Sy --noconfirm $buildDeps
 # useradd -m -G wheel $username
 # echo "$username:$password" | chpasswd

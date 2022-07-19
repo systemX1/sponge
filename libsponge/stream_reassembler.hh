@@ -61,10 +61,11 @@ class StreamReassembler {
 
     size_t firstUnassembledIndex() const { return _firstUnassembledIndex;}
 
-    //
+    //! \returns `true` if begin2 within the range of `begin` to `begin` + `len`
     bool isOverlap(size_t begin, size_t len, size_t begin2);
 
-    //
+    //! \brief append string `src` start at index `srcIdx` behind string `dst` start at index `dstIdx`
+    //! \returns the length of overlap part of `dst` and `src`
     size_t appendSegment(size_t dstIdx, std::string &dst, size_t srcIdx, const std::string &src);
 
 };

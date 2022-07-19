@@ -19,7 +19,7 @@ ByteStream::ByteStream(const size_t capacity) :
     _writeCount(0), _readCount(0), _isInputEnded(false) {}
 
 size_t ByteStream::write(const string &data) {
-    if(data.empty())
+    if (data.empty())
         return 0;
     size_t len = ( data.length() > (_capacity - _buffer.size()) ) ? (_capacity - _buffer.size()) : data.length();
     _writeCount += len;

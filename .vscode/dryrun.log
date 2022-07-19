@@ -1,0 +1,6 @@
+make --dry-run --always-make --keep-going --print-directory
+make: Entering directory '/home/sy/Repo/CS-144/sponge'
+make: Leaving directory '/home/sy/Repo/CS-144/sponge'
+ 
+make: *** No targets specified and no makefile found.  Stop.
+
