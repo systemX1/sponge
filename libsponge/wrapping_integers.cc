@@ -15,7 +15,7 @@ using namespace std;
 //! \param isn The 32-bit initial sequence number
 //! \retval [WrappingInt32] The relative 32-bit sequence number
 WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
-     return WrappingInt32{static_cast<uint32_t>((n & UINT32_MAX) + isn.raw_value() ) };
+    return WrappingInt32{static_cast<uint32_t>((n & UINT32_MAX) + isn.raw_value() ) };
 }
 
 //! Transform a WrappingInt32 into an "absolute" 64-bit sequence number (zero-indexed)
@@ -28,9 +28,12 @@ WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
 //! and the other stream runs from the remote TCPSender to the local TCPReceiver and
 //! has a different ISN.
 uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
-    uint32_t offset = n.raw_value() - static_cast<uint32_t>((checkpoint & UINT32_MAX) + isn.raw_value() );
-    uint64_t ret = checkpoint + offset;
-    if (ret >= (1ul << 32) && offset >= (1u << 31) )
-        ret -= (1ul << 32);
-    return ret;
+//    uint32_t offset = n.raw_value() - static_cast<uint32_t>((checkpoint & UINT32_MAX) + isn.raw_value() );
+//    uint64_t ret = checkpoint + offset;
+//    if (ret >= (1ul << 32) && offset >= (1u << 31) )
+//        ret -= (1ul << 32);
+//    return ret;
+    int32_t steps = n.raw_value() - static_cast<uint32_t>((checkpoint & UINT32_MAX) + isn.raw_value() );
+    int64_t ret = checkpoint + steps;
+    return ret >= 0 ? ret : ret + (1ul << 32);
 }

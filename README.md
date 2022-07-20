@@ -1,5 +1,7 @@
 # CS144 Lab: A Simplified *Implementation* of the *TCP*
 
+https://cs144.github.io/
+
 ## Deploy
 
 ```shell
@@ -19,35 +21,36 @@ docker run -it --privileged --cpus=6 archlinux_cs144:latest
 
 ![](./asset/benchmark.png)
 
+<img src="./asset/prof.png" style="zoom:75%;" />
+
 ## Test Results
 
 - [x] Lab 0: networking warmup
-
 - [x] Lab 1: stitching substrings into a byte stream
-
 - [x] Lab 2: the TCP receiver
-
 - [x] Lab 3: the TCP sender
-
 - [x] Lab 4: the TCP connection
 - [x] Lab 5: the network interface
 - [x] Lab 6: the IP router  
+- [x] Lab7: putting it all together
 
-Lab0-Lab4: TCP Implementation
+Lab0-Lab4: Simplified TCP Implementation
 
 ![](./asset/lab0to4.png)
 
-Lab5: 
+Lab5: ARP
 
+![](./asset/lab5.png)
 
+Lab6: Routing Table
 
-Lab6:
+![](./asset/lab6.png)
 
+Lab7: Putting it all together
 
+<img src="./asset/lab7server.png" style="zoom:80%;" />
 
-Lab7:
-
-
+<img src="./asset/lab7client.png" style="zoom:80%;" />
 
 ## Arrangement
 
@@ -240,9 +243,13 @@ void StreamReassembler::push_substring(const string &data, size_t index, bool eo
 
 ## Lab2 [the TCP receiver](https://cs144.github.io/assignments/lab2.pdf)
 
+Sequence wraparound
+
 ### Translating between 64-bit indexes and 32-bit seqnos
 
 Converting between sequence numbers(ISN) and absolute sequence numbers.
+
+<img src="./asset/WrappingInt32.png" style="zoom:67%;" />
 
 #### API
 
@@ -258,6 +265,26 @@ uint64 t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64 t checkpoint);
 #### My Implementation
 
 [wrapping_integers.cc](./libsponge/wrapping_integers.cc)  [wrapping_integers.hh](./libsponge/wrapping_integers.hh)
+
+It is easier to implement the `wrap` , absolute sequence number modulo UINT32_MAX then plus isn.
+
+```c++
+WrappingInt32 wrap(uint64_t n, WrappingInt32 isn) {
+     return WrappingInt32{static_cast<uint32_t>((n & UINT32_MAX) + isn.raw_value() ) };
+}
+```
+
+The absolute value of `steps` is the minimum difference between uint32 numbers n and checkpoint modulo UINT32_MAX.
+
+```c++
+uint64_t unwrap(WrappingInt32 n, WrappingInt32 isn, uint64_t checkpoint) {
+    int32_t steps = n.raw_value() - static_cast<uint32_t>((checkpoint & UINT32_MAX) + isn.raw_value() );
+    int64_t ret = checkpoint + steps;
+    return ret >= 0 ? ret : ret + (1ul << 32);
+}
+```
+
+
 
 ### TCP receiver
 
@@ -279,6 +306,8 @@ void segment_received(const TCPSegment &seg);
 #### My Implementation
 
 [tcp_receiver.cc](./libsponge/tcp_receiver.cc) [tcp_receiver.hh](./libsponge/tcp_receiver.hh)
+
+
 
 ## Lab3 [the TCP sender](https://cs144.github.io/assignments/lab3.pdf)
 
@@ -312,6 +341,8 @@ void send_empty_segment();
 ## Lab4 [the TCP connection](https://cs144.github.io/assignments/lab4.pdf)
 
 ### TCP connection
+
+![](./asset/arrangement.png)
 
 **Receiving segments.** As shown on Figure 1, the TCPConnection receives TCPSegments
 
@@ -379,8 +410,6 @@ limit TCPConfig::MAX RETX ATTEMPTS.
 
 - end the connection cleanly if necessary (please see Section 5)
 
-
-
 #### API
 
 The full interface for the TCPConnection is in the doc [CS144](https://cs144.github.io/doc/lab4/class_t_c_p_connection.html).
@@ -389,53 +418,119 @@ The full interface for the TCPConnection is in the doc [CS144](https://cs144.git
 
 [tcp_connection.cc](./libsponge/tcp_connection.cc) [tcp_connection.hh](./libsponge/tcp_connection.hh)
 
+Implement the tcp state machine.
 
+```c++
+enum State{
+        LISTEN = 0ul, SYN_RCVD, SYN_SENT, ESTABLISHED, CLOSE_WAIT, LAST_SACK,
+        FIN_WAIT_1, FIN_WAIT_2, CLOSING, TIME_WAIT, CLOSED
+};
+```
+
+<img src="./asset/TCPConnection.png" style="zoom: 60%;" />
+
+<img src="./asset/Tcp_state_diagram_fixed_new.svg" style="zoom:70%;" />
 
 ## Lab5 [the network interface](https://cs144.github.io/assignments/lab5.pdf)
 
-### TCP receiver
+### The Address Resolution Protocol
 
 #### API
 
 ```c++
-
+// This method is called when the caller (e.g., your TCPConnection or a router) wants to send an outbound Internet (IP) datagram to the next hop.
+void NetworkInterface::send_datagram(const InternetDatagram &dgram,
+const Address &next_hop);
+// This method is called when an Ethernet frame arrives from the network. The code
+// should ignore any frames not destined for the network interface (meaning, the Ethernet
+// destination is either the broadcast address or the interface’s own Ethernet address
+// stored in the ethernet address member variable).
+optional<InternetDatagram> NetworkInterface::recv_frame(const EthernetFrame &frame);
+// Called as time passes. Expire any IP-to-Ethernet mappings that have expired.
+void NetworkInterface::tick(const size_t ms_since_last_tick);
 ```
 
 #### My Implementation
 
-[wrapping_integers.cc](./libsponge/wrapping_integers.cc) [wrapping_integers.hh](
+[network_interface.cc](./libsponge/network_interface.cc) [network_interface.hh](./libsponge/network_interface.hh)
+
+Main data structure:
+
+```c++
+class NetworkInterface {
+  private:
+    struct ARPEntry {
+            EthernetAddress eth_addr;
+            size_t time;
+        };
+    // key: ip, val: ARPEntry
+    std::unordered_map<uint32_t, ARPEntry> _arp_table{};
+    // key: ip, val: the time when ethernet frame sent
+    std::unordered_map<uint32_t, size_t> _no_responded_frames{};
+    // key: ipv4 addr, val: InternetDatagram
+    std::list<std::pair<Address, InternetDatagram>> _unsent_datagrams{};
+    ...
+}
+```
+
+
 
 
 
 ## Lab6 [the IP router](https://cs144.github.io/assignments/lab6.pdf)
 
+Among the matching routes, the router chooses the route with the biggest value of
+prefix length. This is the **longest-prefix-match route**.
 
-
-### TCP receiver
+### Router
 
 #### API
 
 ```c++
-
+// Register 
+void add_route(const uint32_t route_prefix,
+    const uint8_t prefix_length,
+    const optional<Address> next_hop,
+    const size_t interface_num);
+// Send datagram
+void route_one_datagram(InternetDatagram &dgram);
 ```
 
 #### My Implementation
 
-[wrapping_integers.cc](./libsponge/wrapping_integers.cc) [wrapping_integers.hh](
+[router.cc](./libsponge/router.cc) [router.hh](./libsponge/router.hh)
+
+Main data structure:
+
+```c++
+class Router {
+    struct RouteEntry {
+     struct RouteEntry {
+        uint32_t route_prefix;
+        uint8_t prefix_length;
+        std::optional<Address> next_hop;
+        size_t interface_num;
+    };
+	std::vector<RouteEntry> _routing_table{};
+        ...
+}
+```
+
+
 
 
 
 ## Lab7 [putting it all together](https://cs144.github.io/assignments/lab7.pdf)
 
-### TCP receiver
+In this lab, you won’t need to do any coding (assuming your previous labs are in
+reasonable working shape). Instead, to cap off your accomplishment, you’re going to use all
+of your previous labs to create a real network that includes your network stack (host and
+router) talking to the network stack implemented by another student in the class.
 
-#### API
+<img src="./asset/Combines.png" style="zoom:67%;" />
 
-```c++
+Lab7: Putting it all together
 
-```
+<img src="./asset/lab7server.png" style="zoom:95%;" />
 
-#### My Implementation
-
-[wrapping_integers.cc](./libsponge/wrapping_integers.cc) [wrapping_integers.hh](
-
+<img src="./asset/lab7client.png" style="zoom:95%;" />

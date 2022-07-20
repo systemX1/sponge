@@ -1,12 +1,18 @@
 #ifndef SPONGE_LIBSPONGE_NETWORK_INTERFACE_HH
 #define SPONGE_LIBSPONGE_NETWORK_INTERFACE_HH
 
+#include "arp_message.hh"
 #include "ethernet_frame.hh"
 #include "tcp_over_ip.hh"
 #include "tun.hh"
 
+#include <list>
+#include <map>
 #include <optional>
 #include <queue>
+
+const size_t ARP_TABLE_ENTRY_TTL = 30 * 1000;
+const size_t ARP_REQUEST_TIMEOUT = 5 * 1000;
 
 //! \brief A "network interface" that connects IP (the internet layer, or network layer)
 //! with Ethernet (the network access layer, or link layer).
@@ -40,6 +46,22 @@ class NetworkInterface {
     //! outbound queue of Ethernet frames that the NetworkInterface wants sent
     std::queue<EthernetFrame> _frames_out{};
 
+    struct ARPEntry {
+        EthernetAddress eth_addr;
+        size_t time;
+    };
+    // key: ip, val: ARPEntry
+    std::unordered_map<uint32_t, ARPEntry> _arp_table{};
+    // key: ip, val: the time when ethernet frame sent
+    std::unordered_map<uint32_t, size_t> _no_responded_frames{};
+    // key: ipv4 addr, val: InternetDatagram
+    std::list<std::pair<Address, InternetDatagram>> _unsent_datagrams{};
+
+    size_t _curr_time;
+
+    void BroadcastArp(const uint32_t &ip);
+
+    void ResponseArpRequest(const ARPMessage &arp_msg);
   public:
     //! \brief Construct a network interface with given Ethernet (network-access-layer) and IP (internet-layer) addresses
     NetworkInterface(const EthernetAddress &ethernet_address, const Address &ip_address);
@@ -61,7 +83,7 @@ class NetworkInterface {
     std::optional<InternetDatagram> recv_frame(const EthernetFrame &frame);
 
     //! \brief Called periodically when time elapses
-    void tick(const size_t ms_since_last_tick);
+    void tick(size_t ms_since_last_tick);
 };
 
 #endif  // SPONGE_LIBSPONGE_NETWORK_INTERFACE_HH

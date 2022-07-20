@@ -8,6 +8,8 @@
 //! Helper type for an Ethernet address (an array of six bytes)
 using EthernetAddress = std::array<uint8_t, 6>;
 
+bool isequal_ethernetAddress(EthernetAddress addr1, EthernetAddress addr2);
+
 //! Ethernet broadcast address (ff:ff:ff:ff:ff:ff)
 constexpr EthernetAddress ETHERNET_BROADCAST = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 

@@ -7,6 +7,15 @@
 
 using namespace std;
 
+bool isequal_ethernetAddress(EthernetAddress addr1, EthernetAddress addr2) {
+    for (int i = 0; i < 6; i++) {
+        if (addr1[i] != addr2[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
 ParseResult EthernetHeader::parse(NetParser &p) {
     if (p.buffer().size() < EthernetHeader::LENGTH) {
         return ParseResult::PacketTooShort;
